@@ -20,16 +20,28 @@ try:
     service.creation_flags = 0x08000000  # Prevents command window from appearing
 
     driver = webdriver.Chrome(service=service, options=options)
-    driver.set_page_load_timeout(30)
-    
-    driver.get("https://rachacuca.com.br/palavras/palavras-cruzadas/1/")
-    print(driver.title)
+    driver.set_page_load_timeout(60)
+    driver.get("http://rachacuca.com.br/palavras/palavras-cruzadas/1/")
     
     assert "Palavra Cruzada" in driver.title
     elem = driver.find_element(By.ID, "cell-0-0")
-    elem.click()
-    elem.send_keys("p")
-    assert "No results found." not in driver.page_source
+    
+    #Find how many questions there are in the crossword:
+    questions_horizontal = driver.find_elements(By.CSS_SELECTOR, 'ul.cross li')
+    horizontal_num = [int(li.get_attribute('data-num')) for li in questions_horizontal]
+    questions_vertical = driver.find_elements(By.CSS_SELECTOR, 'ul.down li')
+    vertical_num = [int(li.get_attribute('data-num')) for li in questions_vertical]
+    amount_of_question = max(max(horizontal_num), max(vertical_num))
+
+    #Retrieve all questions:
+    for i in range(1, amount_of_question):
+        question = driver.find_element(By.XPATH, f'//li[@data-num="{i}"]')
+        print(question.text)
+
+    question1 = driver.find_element(By.XPATH, '//li[@data-num="1"]')
+    print(question1.text)
+    # Keep the browser open until user presses Enter
+    input("Press Enter to close the browser...")
 
 except WebDriverException as e:
     print(f"WebDriver error: {e}")
