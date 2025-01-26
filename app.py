@@ -6,6 +6,20 @@ from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import WebDriverException
 import sys
 
+def get_input_id_by_number(number):
+    try:
+        # Find the span with the specified number
+        span = driver.find_element(By.XPATH, f"//span[@class='number' and text()='{number}']")
+        
+        # Find the associated input sibling in the same td
+        input_element = span.find_element(By.XPATH, "./following-sibling::input")
+        
+        # Return the input's ID
+        return input_element.get_attribute("id")
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
+
 try:
     options = Options()
     options.add_argument('--ignore-certificate-errors')
@@ -24,22 +38,34 @@ try:
     driver.get("http://rachacuca.com.br/palavras/palavras-cruzadas/1/")
     
     assert "Palavra Cruzada" in driver.title
-    elem = driver.find_element(By.ID, "cell-0-0")
     
     #Find how many questions there are in the crossword:
-    questions_horizontal = driver.find_elements(By.CSS_SELECTOR, 'ul.cross li')
-    horizontal_num = [int(li.get_attribute('data-num')) for li in questions_horizontal]
+    questions_horizontal = driver.find_elements(By.CSS_SELECTOR, 'ul.across li')
+    print("questions_horizontal=", questions_horizontal)
+    if len(questions_horizontal) != 0:
+        horizontal_num = [int(li.get_attribute('data-num')) for li in questions_horizontal]
+
+    
     questions_vertical = driver.find_elements(By.CSS_SELECTOR, 'ul.down li')
-    vertical_num = [int(li.get_attribute('data-num')) for li in questions_vertical]
+    print("questions_vertical=", questions_vertical)
+    if len(questions_vertical) != 0:
+        vertical_num = [int(li.get_attribute('data-num')) for li in questions_vertical]
     amount_of_question = max(max(horizontal_num), max(vertical_num))
 
     #Retrieve all questions:
-    for i in range(1, amount_of_question):
+    for i in range(1, amount_of_question+1):
         question = driver.find_element(By.XPATH, f'//li[@data-num="{i}"]')
         print(question.text)
+        cell = get_input_id_by_number(i)
 
-    question1 = driver.find_element(By.XPATH, '//li[@data-num="1"]')
-    print(question1.text)
+        elem = driver.find_element(By.ID, cell)
+        #word_len
+        #Iterate throught the word lenght and write the answer
+        for i in range(len())
+
+    #Write the answer
+    elem = driver.find_element(By.ID, "cell-0-0")
+    elem.send_keys("ABC")
     # Keep the browser open until user presses Enter
     input("Press Enter to close the browser...")
 
