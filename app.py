@@ -4,9 +4,28 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import WebDriverException
+import re
 import sys
 
-def get_input_id_by_number(number):
+
+def extract_number(input_string):
+    # Use a regular expression to find a number at the end of the string within parentheses
+    match = re.search(r'\((\d+)\)$', input_string)
+    if match:
+        return int(match.group(1))
+    return None
+
+
+def extract_column_row(input_string):
+    # Use a regular expression to extract the column (x) and row (y)
+    match = re.match(r'cell-(\d+)-(\d+)', input_string)
+    if match:
+        column = int(match.group(1))
+        row = int(match.group(2))
+        return column, row
+    return None, None  # Return None if the input doesn't match the expected format
+
+def get_cell_by_number(number):
     try:
         # Find the span with the specified number
         span = driver.find_element(By.XPATH, f"//span[@class='number' and text()='{number}']")
@@ -41,31 +60,66 @@ try:
     
     #Find how many questions there are in the crossword:
     questions_horizontal = driver.find_elements(By.CSS_SELECTOR, 'ul.across li')
-    print("questions_horizontal=", questions_horizontal)
     if len(questions_horizontal) != 0:
         horizontal_num = [int(li.get_attribute('data-num')) for li in questions_horizontal]
 
     
     questions_vertical = driver.find_elements(By.CSS_SELECTOR, 'ul.down li')
-    print("questions_vertical=", questions_vertical)
     if len(questions_vertical) != 0:
         vertical_num = [int(li.get_attribute('data-num')) for li in questions_vertical]
-    amount_of_question = max(max(horizontal_num), max(vertical_num))
 
-    #Retrieve all questions:
-    for i in range(1, amount_of_question+1):
-        question = driver.find_element(By.XPATH, f'//li[@data-num="{i}"]')
+    print(f"Horizontal: {horizontal_num}")
+    print(f"Vertical: {vertical_num}")
+
+    example = "abcde"
+    #Solve horizontal questions:
+    print("Solving horizontal questions")
+    for num in horizontal_num:
+        question = driver.find_element(By.XPATH, f'//li[@data-num="{num}"]')
         print(question.text)
-        cell = get_input_id_by_number(i)
+        cell = get_cell_by_number(num)
+        answer_len = extract_number(question.text)
+        column, row = extract_column_row(cell)
 
-        elem = driver.find_element(By.ID, cell)
-        #word_len
-        #Iterate throught the word lenght and write the answer
-        for i in range(len())
+        #Iterate throught the answer length and write the answer
+        example_index = 0
+        for i in range(column, column + answer_len-1):
+            cell = "cell-" + str(i) + "-" + str(row)
+            elem = driver.find_element(By.ID, cell)
+            if (elem) and example_index < len(example):
+                elem.send_keys(example[example_index])
+            else:
+                print(f"Cell {cell} not found")
+                break
+
+            example_index += 1
+
+    # Solve vertical questions
+    print("Solving vertical questions")
+    #Question 5 is both vertical and horizontal - problem
+    for num in vertical_num:
+        question = driver.find_element(By.XPATH, f'//ul[@class="down"]/li[@data-num="{num}"]')
+        print(question.text)
+        cell = get_cell_by_number(num)
+        answer_len = extract_number(question.text)
+        column, row = extract_column_row(cell)
+
+        #Iterate throught the answer length and write the answer
+        example_index = 0
+        for i in range(row, row + answer_len-1):
+            cell = "cell-" + str(column) + "-" + str(i)
+            elem = driver.find_element(By.ID, cell)
+            if (elem) and example_index < len(example):
+                elem.send_keys(example[example_index])
+            else:
+                print(f"Cell {cell} not found")
+                break
+
+            example_index += 1
 
     #Write the answer
-    elem = driver.find_element(By.ID, "cell-0-0")
-    elem.send_keys("ABC")
+    #elem = driver.find_element(By.ID, "cell-0-0")
+    #elem.send_keys("ABC")
     # Keep the browser open until user presses Enter
     input("Press Enter to close the browser...")
 
