@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import WebDriverException
+from question_to_ai  import AIClient
 import re
 import sys
 
@@ -40,6 +41,8 @@ def get_cell_by_number(number):
         return None
 
 try:
+    # Initialize AI client
+    ai_client = AIClient()
     options = Options()
     options.add_argument('--ignore-certificate-errors')
     options.add_argument('--ignore-ssl-errors')
@@ -57,6 +60,8 @@ try:
     driver.get("http://rachacuca.com.br/palavras/palavras-cruzadas/1/")
     
     assert "Palavra Cruzada" in driver.title
+
+    print(ai_client.get_answer("What is the capital of France?"))
     
     #Find how many questions there are in the crossword:
     questions_horizontal = driver.find_elements(By.CSS_SELECTOR, 'ul.across li')
@@ -72,7 +77,8 @@ try:
     print(f"Vertical: {vertical_num}")
 
     example = "abcde"
-    #Solve horizontal questions:
+    # print(get_answer(example))  # Commented out because get_answer is not defined
+    # Solve horizontal questions:
     print("Solving horizontal questions")
     for num in horizontal_num:
         question = driver.find_element(By.XPATH, f'//li[@data-num="{num}"]')
