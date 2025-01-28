@@ -4,7 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import WebDriverException
-from question_to_ai  import AIClient
+from question_to_ai  import QuestionToAI
 import re
 import sys
 
@@ -42,7 +42,7 @@ def get_cell_by_number(number):
 
 try:
     # Initialize AI client
-    ai_client = AIClient()
+    ai_client = QuestionToAI()
     options = Options()
     options.add_argument('--ignore-certificate-errors')
     options.add_argument('--ignore-ssl-errors')
@@ -57,11 +57,10 @@ try:
 
     driver = webdriver.Chrome(service=service, options=options)
     driver.set_page_load_timeout(60)
-    driver.get("http://rachacuca.com.br/palavras/palavras-cruzadas/1/")
+    driver.get("http://rachacuca.com.br/palavras/palavras-cruzadas/2/")
     
     assert "Palavra Cruzada" in driver.title
 
-    print(ai_client.get_answer("What is the capital of France?"))
     
     #Find how many questions there are in the crossword:
     questions_horizontal = driver.find_elements(By.CSS_SELECTOR, 'ul.across li')
@@ -89,11 +88,13 @@ try:
 
         #Iterate throught the answer length and write the answer
         example_index = 0
+        answer = ai_client.ask(question.text)
+        print(f"Answer: {answer}")
         for i in range(column, column + answer_len-1):
             cell = "cell-" + str(i) + "-" + str(row)
             elem = driver.find_element(By.ID, cell)
             if (elem) and example_index < len(example):
-                elem.send_keys(example[example_index])
+                elem.send_keys(answer[example_index])
             else:
                 print(f"Cell {cell} not found")
                 break
